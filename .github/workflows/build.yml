@@ -1,0 +1,30 @@
+name: Build MONO EQ
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Descomprimir MonoEQ.zip
+        run: unzip -q MonoEQ.zip
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.9
+      - name: Compilar APK
+        working-directory: MonoEQ
+        run: gradle assembleDebug --stacktrace
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MonoEQ-debug-apk
+          path: MonoEQ/app/build/outputs/apk/debug/*.apk
+      - name: Pruebas unitarias
+        working-directory: MonoEQ
+        continue-on-error: true
+        run: gradle test
